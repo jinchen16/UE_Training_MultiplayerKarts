@@ -23,6 +23,8 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	FVector Translation = Velocity * DeltaTime * 100;
+	AddActorWorldOffset(Translation);
 }
 
 // Called to bind functionality to input
@@ -30,5 +32,11 @@ void AGoKart::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &AGoKart::MoveForward);
+}
+
+void AGoKart::MoveForward(float Value)
+{
+	Velocity = GetActorForwardVector() * 20 * Value;
 }
 
