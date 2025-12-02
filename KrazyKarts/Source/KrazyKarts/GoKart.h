@@ -28,6 +28,30 @@ public:
 
 private:
 	FVector Velocity;
+	float Throttle;
+	float SteeringThrow;
+	
+	UPROPERTY(EditAnywhere)
+	float Mass = 1000;
+	
+	UPROPERTY(EditAnywhere)
+	float MaxDrivingForce = 10000;
 
-	void MoveForward(float Value);
+	UPROPERTY(EditAnywhere)
+	float MinTurningRadius = 10;
+
+	UPROPERTY(EditAnywhere)
+	float DragCoefficient = 16;
+
+	UPROPERTY(EditAnywhere)
+	float RollingResistanceCoefficient = 0.015;
+
+	UFUNCTION(Server, Reliablem WithValidation)
+	void Server_MoveForward(float Value);
+	
+	void MoveRight(float Value);
+	void ApplyRotation(float DeltaTime);
+	void UpdateLocationFromVelocity(float DeltaTime);
+	FVector GetAirResistance();
+	FVector GetRollingResistance();
 };
