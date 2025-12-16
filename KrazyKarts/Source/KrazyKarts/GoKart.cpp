@@ -3,6 +3,7 @@
 
 #include "GoKart.h"
 #include "Engine/World.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values
 AGoKart::AGoKart()
@@ -17,6 +18,19 @@ void AGoKart::BeginPlay()
 {
 	Super::BeginPlay();
 
+	if (HasAuthority())
+	{
+		NetUpdateFrequency = 1;
+	}
+}
+
+void AGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGoKart, ReplicatedTransform);
+	DOREPLIFETIME(AGoKart, Velocity);
+	DOREPLIFETIME(AGoKart, Throttle);
+	DOREPLIFETIME(AGoKart, SteeringThrow);
 }
 
 // Called every frame
@@ -33,6 +47,11 @@ void AGoKart::Tick(float DeltaTime)
 
 	ApplyRotation(DeltaTime);
 	UpdateLocationFromVelocity(DeltaTime);
+
+	if (HasAuthority())
+	{
+		ReplicatedTransform = GetActorTransform();
+	}
 }
 
 void AGoKart::ApplyRotation(float DeltaTime)
@@ -78,6 +97,11 @@ void AGoKart::MoveRight(float Value)
 {
 	SteeringThrow = Value;
 	Server_MoveRight(Value);
+}
+
+void AGoKart::OnRep_ReplicatedTransform()
+{
+	SetActorTransform(ReplicatedTransform);
 }
 
 void AGoKart::Server_MoveForward_Implementation(float Value)

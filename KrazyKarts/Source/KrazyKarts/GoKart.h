@@ -19,7 +19,7 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -27,13 +27,9 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
-	FVector Velocity;
-	float Throttle;
-	float SteeringThrow;
-	
 	UPROPERTY(EditAnywhere)
 	float Mass = 1000;
-	
+
 	UPROPERTY(EditAnywhere)
 	float MaxDrivingForce = 10000;
 
@@ -45,13 +41,28 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float RollingResistanceCoefficient = 0.015;
-	
+
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
+	UPROPERTY(Replicated)
+	FVector Velocity;
+	
+	UPROPERTY(Replicated)
+	float Throttle;
+
+	UPROPERTY(Replicated)
+	float SteeringThrow;
+
+	UPROPERTY(ReplicatedUsing=OnRep_ReplicatedTransform)
+	FTransform ReplicatedTransform;
+
+	UFUNCTION()
+	void OnRep_ReplicatedTransform();
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveForward(float Value);
-	
+
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_MoveRight(float Value);
 
