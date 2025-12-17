@@ -26,8 +26,8 @@ void AGoKart::BeginPlay()
 
 void AGoKart::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);	
-	DOREPLIFETIME(AGoKart, ServerState);	
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AGoKart, ServerState);
 }
 
 // Called every frame
@@ -37,12 +37,8 @@ void AGoKart::Tick(float DeltaTime)
 
 	if (IsLocallyControlled())
 	{
-		FGoKartMove Move;
-		Move.Throttle = Throttle;
-		Move.SteeringThrow = SteeringThrow;
-		Move.DeltaTime = DeltaTime;
-		// TODO:Timestamp
-
+		FGoKartMove Move = CreateMove(DeltaTime);
+		CachedMoves.Add(Move);
 		Server_SendMove(Move);
 		SimulateMove(Move);
 	}
@@ -95,6 +91,11 @@ void AGoKart::OnRep_ServerState()
 {
 	Velocity = ServerState.Velocity;
 	SetActorTransform(ServerState.Transform);
+	ClearCachedMoves(ServerState.LastMove);
+	if (!HasAuthority())
+	{
+		CachedMoves.Add(ServerState.LastMove);
+	}
 }
 
 // Replace this SendMove
@@ -138,4 +139,28 @@ void AGoKart::SimulateMove(FGoKartMove Move)
 
 	ApplyRotation(Move.DeltaTime, Move.SteeringThrow);
 	UpdateLocationFromVelocity(Move.DeltaTime);
+}
+
+FGoKartMove AGoKart::CreateMove(float DeltaTime)
+{
+	FGoKartMove Move;
+	Move.Throttle = Throttle;
+	Move.SteeringThrow = SteeringThrow;
+	Move.DeltaTime = DeltaTime;
+	Move.Timestamp = GetWorld()->TimeSeconds; // It's best to get the server time
+
+	return Move;
+}
+
+void AGoKart::ClearCachedMoves(FGoKartMove LastMove)
+{
+	TArray<FGoKartMove> NewMoves;
+	for (const FGoKartMove& Move : CachedMoves)
+	{
+		if (Move.Timestamp > LastMove.Timestamp)
+		{
+			NewMoves.Add(Move);
+		}
+	}
+	CachedMoves = NewMoves;
 }

@@ -79,19 +79,10 @@ private:
 	void MoveForward(float Value);
 	void MoveRight(float Value);
 
-	FVector Velocity;
-	
-	UPROPERTY(Replicated)
-
-	UPROPERTY(Replicated)
+	FVector Velocity;	
 	float Throttle;
 	float SteeringThrow;
 
-	UPROPERTY(ReplicatedUsing=OnRep_ReplicatedTransform)
-	FTransform ReplicatedTransform;
-	UPROPERTY(ReplicatedUsing = OnRep_ReplicatedTransform)
-	FTransform ReplicatedTransform;
-	// Using ServerState to replicate the transform, replace the function that handles the replication
 	UPROPERTY(ReplicatedUsing = OnRep_ServerState)
 	FGoKartState ServerState;
 
@@ -109,29 +100,10 @@ private:
 
 	void SimulateMove(FGoKartMove Move);
 
+	TArray<FGoKartMove> CachedMoves;
 
-
-
-
-
-	/*
-	* Set the Move.Time = GetWorld()->TimeSeconds;
-	* Create a TArray
-	* Use the TArray inside the IsLocallyControlled block 
-	* Where the FGoKartMove is created
-	* Make a function extracting the Move instance.
-	* UnacknowledgedMoves.Add(Move); //This is the TArray
-	* Prune the Queue 
-	* Make a function that Clear the TArray -> param: FGoKartMove LastMove
-	* TArray<FGoKartMove> NewMoves;	 
-	*	for loop on the queue moves	
-	*		if(Move.Time > LastMove.Time)
-	*			NewMoves.Add(Move);
-	* Set the TArray to the NewMoves;
-	* 
-	* OnRep_ServerState -> Call Clear the TArray.
-	* if(!HasAuthority()) -> Add the move to the TArray
-	 */
+	FGoKartMove CreateMove(float DeltaTime);
+	void ClearCachedMoves(FGoKartMove LastMove);	
 
 	/*
 	* Replay/Simulate all the AcknowledgedMoves
