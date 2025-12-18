@@ -4,6 +4,7 @@
 #include "GoKart.h"
 #include "Engine/World.h"
 #include "Net/UnrealNetwork.h"
+#include "GameFramework/Actor.h"
 
 // Sets default values
 AGoKart::AGoKart()
@@ -35,12 +36,23 @@ void AGoKart::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsLocallyControlled())
+	if (GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		FGoKartMove Move = CreateMove(DeltaTime);
-		CachedMoves.Add(Move);
-		Server_SendMove(Move);
 		SimulateMove(Move);
+		CachedMoves.Add(Move);
+		Server_SendMove(Move);		
+	}
+
+	if (GetLocalRole() == ROLE_Authority && !IsLocallyControlled())
+	{
+		FGoKartMove Move = CreateMove(DeltaTime);
+		Server_SendMove(Move);
+	}
+
+	if (GetLocalRole() == ROLE_SimulatedProxy)
+	{
+		SimulateMove(ServerState.LastMove);
 	}
 }
 
@@ -91,10 +103,11 @@ void AGoKart::OnRep_ServerState()
 {
 	Velocity = ServerState.Velocity;
 	SetActorTransform(ServerState.Transform);
-	ClearCachedMoves(ServerState.LastMove);
-	if (!HasAuthority())
+	ClearCachedMoves(ServerState.LastMove);	
+
+	for (const FGoKartMove& Move : CachedMoves)
 	{
-		CachedMoves.Add(ServerState.LastMove);
+		SimulateMove(Move);
 	}
 }
 
@@ -105,8 +118,7 @@ void AGoKart::Server_SendMove_Implementation(FGoKartMove Move)
 
 	ServerState.LastMove = Move;
 	ServerState.Velocity = Velocity;
-	ServerState.Transform = GetActorTransform();
-	// TODO: Update the last move
+	ServerState.Transform = GetActorTransform();	
 }
 
 // Replace this SendMove_Validation
@@ -128,7 +140,7 @@ FVector AGoKart::GetRollingResistance()
 	return -Velocity.GetSafeNormal() * RollingResistanceCoefficient * NormalForce;
 }
 
-void AGoKart::SimulateMove(FGoKartMove Move)
+void AGoKart::SimulateMove(const FGoKartMove& Move)
 {
 	FVector Force = GetActorForwardVector() * MaxDrivingForce * Move.Throttle;
 	Force += GetAirResistance();

@@ -98,43 +98,10 @@ private:
 	FVector GetAirResistance();
 	FVector GetRollingResistance();
 
-	void SimulateMove(FGoKartMove Move);
+	void SimulateMove(const FGoKartMove& Move);
 
 	TArray<FGoKartMove> CachedMoves;
 
 	FGoKartMove CreateMove(float DeltaTime);
 	void ClearCachedMoves(FGoKartMove LastMove);	
-
-	/*
-	* Replay/Simulate all the AcknowledgedMoves
-	* OnRep_ServerState
-	* for loop SimulateMove(Move) on the TArray
-	* SimulateMove change to a const & param
-	*/
-
-	/*
-	* SimulateMove(Move) on the Tick move it inside the if check !HasAuthority()
-	* 
-	* Tick
-	* if(Role == ROLE_AutonomousProxy)
-	* {
-	*	Create the Move
-	*	Simulate
-	*	TArray add move
-	*	Server_SendMove
-	* }
-	* 
-	* // We are the server
-	* if(Role == ROLE_Authority && !IsLocallyControlled())
-	* {
-	*	Create move
-	*	Server_SendMove
-	* }
-	* 
-	* Client Prediction
-	* if(Role == ROLE_SimulatedProxy)
-	* {
-	*	SimulateMove(ServerState.LastMove);
-	* }
-	*/
 };
