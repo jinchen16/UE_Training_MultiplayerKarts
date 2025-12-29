@@ -56,6 +56,8 @@ void UGoKartMovementReplicator::GetLifetimeReplicatedProps(TArray<FLifetimePrope
 
 void UGoKartMovementReplicator::OnRep_ServerState()
 {
+	if (MovementComponent == nullptr) return;
+
 	MovementComponent->SetVelocity(ServerState.Velocity);
 	GetOwner()->SetActorTransform(ServerState.Transform);
 	ClearCachedMoves(ServerState.LastMove);
@@ -69,6 +71,8 @@ void UGoKartMovementReplicator::OnRep_ServerState()
 // Replace this SendMove
 void UGoKartMovementReplicator::Server_SendMove_Implementation(FGoKartMove Move)
 {
+	if (MovementComponent == nullptr) return;
+
 	MovementComponent->SimulateMove(Move);
 	UpdateServerState(Move);
 }
