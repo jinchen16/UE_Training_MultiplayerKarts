@@ -28,13 +28,13 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UGoKartMovementComponent> MovementComponent;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UGoKartMovementReplicator> MovementReplicator;
+
 private:
 	void MoveForward(float Value);
-	void MoveRight(float Value);
-
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UGoKartMovementComponent> MovementComponent;
-	
-	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UGoKartMovementReplicator> MovementReplicator;
+	void MoveRight(float Value);	
 };
